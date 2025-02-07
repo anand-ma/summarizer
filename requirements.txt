@@ -1,0 +1,11 @@
+streamlit
+langchain
+langchain-openai
+langchain-community
+openai
+tiktoken
+requests
+chromadb==0.5.17
+beautifulsoup4
+youtube_transcript_api
+pytube
