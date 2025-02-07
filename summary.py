@@ -112,8 +112,8 @@ def process_url(video_url, model):
 
         return True
     except Exception as e:
-        # st.error(f"An error occurred during processing: {str(e)}")
-        st.error(f"This Video may not have Transcript, Try a different Video")
+        st.error(f"An error occurred during processing: {str(e)}")
+        # st.error(f"This Video may not have Transcript, Try a different Video")
         return False
 
 def initiate_processing():
@@ -128,8 +128,8 @@ def initiate_processing():
                 if success:
                     st.success("Processing complete!")
         except Exception as e:
-            # st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
-            st.error(f"This Video may not have Transcript, Try a different Video")
+            st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
+            # st.error(f"This Video may not have Transcript, Try a different Video")
 
 
 
