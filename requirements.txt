@@ -5,7 +5,7 @@ langchain-community
 openai
 tiktoken
 requests
-chromadb==0.5.17
+faiss-cpu
 beautifulsoup4
 youtube_transcript_api
 pytube
