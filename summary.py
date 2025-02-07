@@ -112,7 +112,8 @@ def process_url(video_url, model):
 
         return True
     except Exception as e:
-        st.error(f"An error occurred during processing: {str(e)}")
+        # st.error(f"An error occurred during processing: {str(e)}")
+        st.error(f"This Video may not have Transcript, try a different Video")
         return False
 
 def initiate_processing():
@@ -124,7 +125,8 @@ def initiate_processing():
                 if success:
                     st.success("Processing complete!")
         except Exception as e:
-            st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
+            # st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
+            st.error(f"This Video may not have Transcript, try a different Video")
 
 
 
@@ -144,8 +146,8 @@ with st.sidebar:
         value="https://www.youtube.com/watch?v=5bqBre9wOLA",
         placeholder="Enter any YouTube video url",
         disabled=False,
-        key="video_url" # store key in session state
-        # on_change=initiate_processing
+        key="video_url", # store key in session state
+        on_change=initiate_processing
     )
 
     st.selectbox(
@@ -154,14 +156,14 @@ with st.sidebar:
         key="model",
     )
     
-    if not st.session_state.YTUrlLoaded and st.session_state.video_url:
-        try:
-            with st.spinner("Processing youtube url..."):
-                success = process_url(st.session_state.video_url, st.session_state.model)
-                if success:
-                    st.success("Processing complete!")
-        except Exception as e:
-            st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
+    # if not st.session_state.YTUrlLoaded and st.session_state.video_url:
+    #     try:
+    #         with st.spinner("Processing youtube url..."):
+    #             success = process_url(st.session_state.video_url, st.session_state.model)
+    #             if success:
+    #                 st.success("Processing complete!")
+    #     except Exception as e:
+    #         st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
 
 
 
