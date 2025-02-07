@@ -143,7 +143,7 @@ with st.sidebar:
     st.text_input(
         label="Youtube Url",
         type="default",
-        value="https://www.youtube.com/watch?v=5bqBre9wOLA",
+        # value="https://www.youtube.com/watch?v=5bqBre9wOLA",
         placeholder="Enter any YouTube video url",
         disabled=False,
         key="video_url", # store key in session state
