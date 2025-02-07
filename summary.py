@@ -58,8 +58,7 @@ def create_qa_chain(vectorstore, model):
     
     Answer above question in {lang}
 
-    {human_input}
-"""
+    {human_input}"""
     
     # for some reason, {context} variable has to be injected for the prompt to work, {chat_history} variable works directly from the session state
     prompt = PromptTemplate(input_variables=['context', 'chat_history', 'human_input', 'question', 'lang'], template=template)
