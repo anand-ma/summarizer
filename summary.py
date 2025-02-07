@@ -157,6 +157,7 @@ with st.sidebar:
         "Select AI Model",
         ("Mistral", "Llama"),
         key="model",
+        on_change=initiate_processing
     )
     
     # if not st.session_state.YTUrlLoaded and st.session_state.video_url:
