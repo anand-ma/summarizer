@@ -117,7 +117,10 @@ def process_url(video_url, model):
         return False
 
 def initiate_processing():
+    # Reset the chat history and the YTUrlLoaded flag
     st.session_state.YTUrlLoaded = False
+    st.session_state.chat_history = [] 
+
     if st.session_state.video_url:
         try:
             with st.spinner("Processing youtube url..."):
