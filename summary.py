@@ -42,12 +42,7 @@ def load_video_transcript(video_url):
         video_url,
         add_video_info=False
     )
-    st.write(loader)
-    st.write("- * 50")
-    
     data = loader.load()
-    st.write(data)
-    st.write(f"Data length: {len(data)}")
     return data
 
 def create_qa_chain(vectorstore, model):
@@ -98,14 +93,10 @@ def process_url(video_url, model):
         st.write(f"Video Split: {video_splits}")
         video_embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    except Exception as e:
-        st.error(f"An error occurred during processing 1: {str(e)}")
-        # st.error(f"This Video may not have Transcript, Try a different Video")
-        return False
-            # Create a Chroma vector store
+
+        # Create a Chroma vector store
         # it failed miserably, when changing language or model so we are using FAISS instead
         # vectorstore = Chroma.from_documents(video_splits, video_embeddings, collection_name="video_transcript")
-    try:
         # Create a FAISS vector store
         vectorstore = FAISS.from_documents(video_splits, video_embeddings)
 
@@ -113,11 +104,7 @@ def process_url(video_url, model):
             model = llama_model
         elif model == "Mistral":
             model = mixtral_model
-    except Exception as e:
-        st.error(f"An error occurred during processing 2: {str(e)}")
-        # st.error(f"This Video may not have Transcript, Try a different Video")
-        return False
-    try:
+
         # Create conversation chain
         st.session_state.video_qa_chain = create_qa_chain(vectorstore, model)
 
