@@ -40,6 +40,7 @@ mixtral_model = ChatOpenAI(model = "mistralai/Mixtral-8x22B-Instruct-v0.1",
 def load_video_transcript(video_url):
     loader = YoutubeLoader.from_youtube_url(
         video_url,
+        add_video_info=False
     )
     st.write(loader)
     st.write("- * 50")
