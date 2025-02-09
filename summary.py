@@ -41,7 +41,11 @@ def load_video_transcript(video_url):
     loader = YoutubeLoader.from_youtube_url(
         video_url,
     )
+    st.write(loader)
+    st.write("- * 50")
+    
     data = loader.load()
+    st.write(data)
     st.write(f"Data length: {len(data)}")
     return data
 
