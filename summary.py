@@ -90,7 +90,6 @@ def process_url(video_url, model):
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         video_splits = text_splitter.split_documents(website_data)
-        st.write(f"Video Split: {video_splits}")
         video_embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 
