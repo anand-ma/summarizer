@@ -11,9 +11,10 @@ import os
 
 # To run locally:
 # 1. Install the required packages:
-#     pip install -r requirements.txt
+#     pip install -qU -r requirements.txt
 # 2. Run the Streamlit app:
-#     streamlit run pdf_chatbot.py
+#     streamlit run summary.py
+# clear && python3.11 -m pip install -qU -r requirements.txt && streamlit run summary.py
 
 
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
