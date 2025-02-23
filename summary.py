@@ -28,6 +28,9 @@ if "YTUrlLoaded" not in st.session_state:
 if "video_qa_chain" not in st.session_state:
     st.session_state.video_qa_chain = None
 
+all_languages = ['ab', 'aa', 'af', 'ak', 'sq', 'am', 'ar', 'hy', 'as', 'ay', 'az', 'bn', 'ba', 'eu', 'be', 'bho', 'bs', 'br', 'bg', 'my', 'ca', 'ceb', 'zh-Hans', 'zh-Hant', 'co', 'hr', 'cs', 'da', 'dv', 'nl', 'dz', 'en', 'eo', 'et', 'ee', 'fo', 'fj', 'fil', 'fi', 'fr', 'gaa', 'gl', 'lg', 'ka', 'de', 'el', 'gn', 'gu', 'ht', 'ha', 'haw', 'iw', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 'iu', 'ga', 'it', 'ja', 'jv', 'kl', 'kn', 'kk', 'kha', 'km', 'rw', 'ko', 'kri', 'ku', 'ky', 'lo', 'la', 'lv', 'ln', 'lt', 'lua', 'luo', 'lb', 'mk', 'mg', 'ms', 'ml', 'mt', 'gv', 'mi', 'mr', 'mn', 'mfe', 'ne', 'new', 'nso', 'no', 'ny', 'oc', 'or', 'om', 'os', 'pam', 'ps', 'fa', 'pl', 'pt', 'pt-PT', 'pa', 'qu', 'ro', 'rn', 'ru', 'sm', 'sg', 'sa', 'gd', 'sr', 'crs', 'sn', 'sd', 'si', 'sk', 'sl', 'so', 'st', 'es', 'su', 'sw', 'ss', 'sv', 'tg', 'ta', 'tt', 'te', 'th', 'bo', 'ti', 'to', 'ts', 'tn', 'tum', 'tr', 'tk', 'uk', 'ur', 'ug', 'uz', 've', 'vi', 'war', 'cy', 'fy', 'wo', 'xh', 'yi', 'yo', 'zu']
+indian_languages = ['as', 'bn', 'bho', 'gu', 'hi', 'kn', 'ks', 'ml', 'mr', 'ne', 'or', 'pa', 'sa', 'sd', 'si', 'ta', 'te', 'ur']
+
 llm = ChatOpenAI(temperature=0.7, model_name='gpt-4o-mini')
 
 llama_model = ChatOpenAI(model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
@@ -41,25 +44,25 @@ mixtral_model = ChatOpenAI(model = "mistralai/Mixtral-8x22B-Instruct-v0.1",
 def load_video_transcript(video_url):
     loader = YoutubeLoader.from_youtube_url(
         video_url,
+        # language=['ta', 'en', 'te'],
+        language = all_languages,
+        translation='en',  # Translate to English
         add_video_info=False
     )
-    data = loader.load()
-    return data
+    # Loads youtube video transcript
+    documents = loader.load()
+    # Process or display the loaded documents
+    for doc in documents:
+        print(doc.page_content)
+
+    return documents
 
 def create_qa_chain(vectorstore, model):
-
-    # If asked any other question, just say that you don't know in a very short and funny way, answer differently everytime, don't try to make up an answer.
-
     template = """You are a helpful AI assistant that answers questions about passed context only.
-    
     context: {context}
-
     chat history: {chat_history}
-    
     User Query: {question} 
-    
     Answer above question in {lang}
-
     {human_input}"""
     
     # for some reason, {context} variable has to be injected for the prompt to work, {chat_history} variable works directly from the session state
@@ -80,10 +83,12 @@ def create_qa_chain(vectorstore, model):
 
     return video_qa_chain
   
+
 def display_chat_history():
     for role, avatar, message, lang in st.session_state.chat_history:
         with st.chat_message(role, avatar=avatar):
             st.write(message)
+
 
 def process_url(video_url, model):
     try:
@@ -116,6 +121,7 @@ def process_url(video_url, model):
         # st.error(f"This Video may not have Transcript, Try a different Video")
         return False
 
+
 def initiate_processing():
     # Reset the chat history and the YTUrlLoaded flag
     st.session_state.YTUrlLoaded = False
@@ -130,7 +136,6 @@ def initiate_processing():
         except Exception as e:
             st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
             # st.error(f"This Video may not have Transcript, Try a different Video")
-
 
 
 
@@ -160,18 +165,6 @@ with st.sidebar:
         on_change=initiate_processing
     )
     
-    # if not st.session_state.YTUrlLoaded and st.session_state.video_url:
-    #     try:
-    #         with st.spinner("Processing youtube url..."):
-    #             success = process_url(st.session_state.video_url, st.session_state.model)
-    #             if success:
-    #                 st.success("Processing complete!")
-    #     except Exception as e:
-    #         st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
-
-
-
-
 st.header("Video Summary 📽")
 st.subheader("Ask questions about the video or Summarize in any Language")
 
@@ -180,15 +173,6 @@ if st.session_state.YTUrlLoaded:
 
     user_question = st.chat_input("Ask a Question or Summarize",)
     
-    # question = st.text_input(
-    #     label="Question",
-    #     value="Summarize",
-    #     max_chars=200,
-    #     type="default",
-    #     placeholder="Ask a Question or Summarize",
-    #     disabled=False
-    # )
-
     lang = st.text_input(
         label="Language",
         value="English",
@@ -218,6 +202,7 @@ if st.session_state.YTUrlLoaded:
                 assistant_role = "Teacher"
                 assistant_avatar = "👩‍🏫"
                 st.session_state.chat_history.append((assistant_role, assistant_avatar, response["answer"], lang))
+
                 # we are writing message directly instead of calling display_chat_history() to 
                 # avoid displaying the last question twice
                 with st.chat_message(assistant_role, avatar=assistant_avatar):
