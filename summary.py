@@ -51,11 +51,7 @@ def load_video_transcript(video_url):
     )
     # Loads youtube video transcript
     documents = loader.load()
-    # Process or display the loaded documents
-    for doc in documents:
-        print(doc.page_content)
-
-    return documents
+    return documents[0].page_content
 
 def create_qa_chain(vectorstore, model):
     template = """You are a helpful AI assistant that answers questions about passed context only.
