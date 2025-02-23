@@ -51,7 +51,7 @@ def load_video_transcript(video_url):
     )
     # Loads youtube video transcript
     documents = loader.load()
-    return documents[0].page_content
+    return documents[0].page_content.strip() # strip remvoves leading and trailing whitespace
 
 def create_qa_chain(vectorstore, model):
     template = """You are a helpful AI assistant that answers questions about passed context only.
