@@ -133,7 +133,7 @@ def initiate_processing():
                 if success:
                     st.success("Processing complete!")
         except Exception as e:
-            st.error(f"This Video may not have Transcript, try a different Video {str(e)}")
+            st.error(f"This Video may not have Transcript, Try a different Video \nError: {str(e)}")
             # st.error(f"This Video may not have Transcript, Try a different Video")
 
 
