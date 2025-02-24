@@ -72,7 +72,7 @@ def load_video_transcript(video_url):
                 add_video_info=False
             )
             break
-        except IndexError as exp:
+        except Exception as exp:
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
                 st.write(f"attemp **** {attempt}")
