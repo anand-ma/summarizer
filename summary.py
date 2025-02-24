@@ -29,6 +29,9 @@ if "YTUrlLoaded" not in st.session_state:
     st.session_state.YTUrlLoaded = None
 if "video_qa_chain" not in st.session_state:
     st.session_state.video_qa_chain = None
+if "yt_thumb" not in st.session_state:
+    st.session_state.yt_thumb = None
+
 
 all_languages = ['ab', 'aa', 'af', 'ak', 'sq', 'am', 'ar', 'hy', 'as', 'ay', 'az', 'bn', 'ba', 'eu', 'be', 'bho', 'bs', 'br', 'bg', 'my', 'ca', 'ceb', 'zh-Hans', 'zh-Hant', 'co', 'hr', 'cs', 'da', 'dv', 'nl', 'dz', 'en', 'eo', 'et', 'ee', 'fo', 'fj', 'fil', 'fi', 'fr', 'gaa', 'gl', 'lg', 'ka', 'de', 'el', 'gn', 'gu', 'ht', 'ha', 'haw', 'iw', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 'iu', 'ga', 'it', 'ja', 'jv', 'kl', 'kn', 'kk', 'kha', 'km', 'rw', 'ko', 'kri', 'ku', 'ky', 'lo', 'la', 'lv', 'ln', 'lt', 'lua', 'luo', 'lb', 'mk', 'mg', 'ms', 'ml', 'mt', 'gv', 'mi', 'mr', 'mn', 'mfe', 'ne', 'new', 'nso', 'no', 'ny', 'oc', 'or', 'om', 'os', 'pam', 'ps', 'fa', 'pl', 'pt', 'pt-PT', 'pa', 'qu', 'ro', 'rn', 'ru', 'sm', 'sg', 'sa', 'gd', 'sr', 'crs', 'sn', 'sd', 'si', 'sk', 'sl', 'so', 'st', 'es', 'su', 'sw', 'ss', 'sv', 'tg', 'ta', 'tt', 'te', 'th', 'bo', 'ti', 'to', 'ts', 'tn', 'tum', 'tr', 'tk', 'uk', 'ur', 'ug', 'uz', 've', 'vi', 'war', 'cy', 'fy', 'wo', 'xh', 'yi', 'yo', 'zu']
 indian_languages = ['as', 'bn', 'bho', 'gu', 'hi', 'kn', 'ks', 'ml', 'mr', 'ne', 'or', 'pa', 'sa', 'sd', 'si', 'ta', 'te', 'ur']
@@ -44,46 +47,18 @@ mixtral_model = ChatOpenAI(model = "mistralai/Mixtral-8x22B-Instruct-v0.1",
                     openai_api_base = "https://api.together.xyz/v1")
 
 
-def get_youtube_thumbnail(youtube_url):
-    # Regular expression to extract video ID from the URL
-    video_id_pattern = r'(?:https?://)?(?:www\.)?(?:youtube\.com/(?:[^/]+/.*|(?:v|e(?:mbed)?)|.*[?&]v=)|youtu\.be/)([a-zA-Z0-9_-]{11})'
-    match = re.search(video_id_pattern, youtube_url)
-    
-    if match:
-        video_id = match.group(1)
-        # Construct the thumbnail URL
-        thumbnail_url = f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'
-        return thumbnail_url
-    else:
-        return None
-
 def load_video_transcript(video_url):
+    loader = YoutubeLoader.from_youtube_url(
+        video_url,
+        # language=['ta', 'en', 'te'],
+        language = all_languages,
+        translation='en',  # Translate to English
+        add_video_info=False
+    )
 
-    max_retries = 3
-    retry_delay = 5  # seconds
-
-    for attempt in range(max_retries):
-        try:
-            loader = YoutubeLoader.from_youtube_url(
-                video_url,
-                # language=['ta', 'en', 'te'],
-                language = all_languages,
-                translation='en',  # Translate to English
-                add_video_info=False
-            )
-            break
-        except Exception as exp:
-            if attempt < max_retries - 1:
-                time.sleep(retry_delay)
-                st.write(f"attemp **** {attempt}")
-            else:
-                st.error(f"An error occurred during processing 4: {str(exp)}") # Handle failure after all retries
-
-    for key, value in loader.__dict__.items():
-        st.error(f"{key}: {value}")
+    st.session_state.yt_thumb = f'https://img.youtube.com/vi/{loader.video_id}/hqdefault.jpg' # set thumbnail image
     # Loads youtube video transcript
     documents = loader.load()
-    st.error(documents)
     return documents
 
 
@@ -110,7 +85,6 @@ def create_qa_chain(vectorstore, model):
         memory = memory,
         combine_docs_chain_kwargs={'prompt': prompt}
     )
-
     return video_qa_chain
   
 
@@ -121,39 +95,30 @@ def display_chat_history():
 
 
 def process_url(video_url, model):
-    try:
-        website_data = load_video_transcript(video_url)
-        st.error(f"transcript = {website_data}")
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        
-        video_splits = text_splitter.split_documents(website_data)
-        st.error(f"video_splits = {video_splits}")
-        video_embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    website_data = load_video_transcript(video_url)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    
+    video_splits = text_splitter.split_documents(website_data)
+    video_embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 
-        # Create a Chroma vector store
-        # it failed miserably, when changing language or model so we are using FAISS instead
-        # vectorstore = Chroma.from_documents(video_splits, video_embeddings, collection_name="video_transcript")
-        # Create a FAISS vector store
-        vectorstore = FAISS.from_documents(video_splits, video_embeddings)
-        st.error(f"vectorstore = {vectorstore}")
-        
-        if model == "Llama":
-            model = llama_model
-        elif model == "Mistral":
-            model = mixtral_model
+    # Create a Chroma vector store
+    # it failed miserably, when changing language or model so we are using FAISS instead
+    # vectorstore = Chroma.from_documents(video_splits, video_embeddings, collection_name="video_transcript")
+    # Create a FAISS vector store
+    vectorstore = FAISS.from_documents(video_splits, video_embeddings)
+    
+    if model == "Llama":
+        model = llama_model
+    elif model == "Mistral":
+        model = mixtral_model
 
-        # Create conversation chain
-        st.session_state.video_qa_chain = create_qa_chain(vectorstore, model)
-        st.error(f"chain = {st.session_state.video_qa_chain}")
+    # Create conversation chain
+    st.session_state.video_qa_chain = create_qa_chain(vectorstore, model)
 
-        st.session_state.YTUrlLoaded = True
+    st.session_state.YTUrlLoaded = True
 
-        return True
-    except Exception as e:
-        st.error(f"An error occurred during processing 3: {str(e)}")
-        # st.error(f"This Video may not have Transcript, Try a different Video")
-        return False
+    return True
 
 
 def initiate_processing():
@@ -215,7 +180,7 @@ if st.session_state.YTUrlLoaded:
         disabled=False
     )
 
-    yt_thumbnail = get_youtube_thumbnail(st.session_state.video_url)
+    yt_thumbnail = st.session_state.yt_thumb
     st.image(yt_thumbnail, use_container_width=True)
 
     if user_question:
