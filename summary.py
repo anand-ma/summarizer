@@ -79,7 +79,8 @@ def load_video_transcript(video_url):
             else:
                 st.error(f"An error occurred during processing 4: {str(exp)}") # Handle failure after all retries
 
-    st.error(f"loader = {loader}")
+    for key, value in loader.__dict__.items():
+        st.error(f"{key}: {value}")
     # Loads youtube video transcript
     documents = loader.load()
     st.error(documents)
@@ -145,7 +146,6 @@ def process_url(video_url, model):
         # Create conversation chain
         st.session_state.video_qa_chain = create_qa_chain(vectorstore, model)
         st.error(f"chain = {st.session_state.video_qa_chain}")
-
 
         st.session_state.YTUrlLoaded = True
 
