@@ -9,7 +9,7 @@ from langchain.prompts import PromptTemplate
 import streamlit as st
 import os
 import re
-import requests
+import time
 
 # To run locally:
 # 1. Install the required packages:
@@ -58,13 +58,26 @@ def get_youtube_thumbnail(youtube_url):
         return None
 
 def load_video_transcript(video_url):
-    loader = YoutubeLoader.from_youtube_url(
-        video_url,
-        # language=['ta', 'en', 'te'],
-        language = all_languages,
-        translation='en',  # Translate to English
-        add_video_info=False
-    )
+
+    max_retries = 3
+    retry_delay = 5  # seconds
+
+    for attempt in range(max_retries):
+        try:
+            loader = YoutubeLoader.from_youtube_url(
+                video_url,
+                # language=['ta', 'en', 'te'],
+                language = all_languages,
+                translation='en',  # Translate to English
+                add_video_info=False
+            )
+            break
+        except IndexError as exp:
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+            else:
+                st.error(f"An error occurred during processing 4: {str(exp)}") # Handle failure after all retries
+
     # Loads youtube video transcript
     documents = loader.load()
     return documents
