@@ -118,9 +118,11 @@ def display_chat_history():
 def process_url(video_url, model):
     try:
         website_data = load_video_transcript(video_url)
-
+        st.error(f"transcript = {website_data}")
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        
         video_splits = text_splitter.split_documents(website_data)
+        st.error(f"video_splits = {video_splits}")
         video_embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 
@@ -129,7 +131,8 @@ def process_url(video_url, model):
         # vectorstore = Chroma.from_documents(video_splits, video_embeddings, collection_name="video_transcript")
         # Create a FAISS vector store
         vectorstore = FAISS.from_documents(video_splits, video_embeddings)
-
+        st.error(f"vectorstore = {vectorstore}")
+        
         if model == "Llama":
             model = llama_model
         elif model == "Mistral":
@@ -137,6 +140,8 @@ def process_url(video_url, model):
 
         # Create conversation chain
         st.session_state.video_qa_chain = create_qa_chain(vectorstore, model)
+        st.error(f"chain = {st.session_state.video_qa_chain}")
+
 
         st.session_state.YTUrlLoaded = True
 
