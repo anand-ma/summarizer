@@ -71,8 +71,6 @@ def load_video_transcript(video_url):
                 translation='en',  # Translate to English
                 add_video_info=False
             )
-                # Loads youtube video transcript
-
             break
         except IndexError as exp:
             if attempt < max_retries - 1:
@@ -81,6 +79,7 @@ def load_video_transcript(video_url):
                 st.error(f"An error occurred during processing 4: {str(exp)}") # Handle failure after all retries
 
     st.error(f"loader = {loader}")
+    # Loads youtube video transcript
     documents = loader.load()
     return documents
 
