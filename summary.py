@@ -75,6 +75,7 @@ def load_video_transcript(video_url):
         except IndexError as exp:
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
+                st.write(f"attemp **** {attempt}")
             else:
                 st.error(f"An error occurred during processing 4: {str(exp)}") # Handle failure after all retries
 
