@@ -71,6 +71,8 @@ def load_video_transcript(video_url):
                 translation='en',  # Translate to English
                 add_video_info=False
             )
+                # Loads youtube video transcript
+
             break
         except IndexError as exp:
             if attempt < max_retries - 1:
@@ -78,9 +80,10 @@ def load_video_transcript(video_url):
             else:
                 st.error(f"An error occurred during processing 4: {str(exp)}") # Handle failure after all retries
 
-    # Loads youtube video transcript
+    st.error(f"loader = {loader}")
     documents = loader.load()
     return documents
+
 
 def create_qa_chain(vectorstore, model):
     template = """You are a helpful AI assistant that answers questions about passed context only.
