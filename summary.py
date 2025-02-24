@@ -8,6 +8,8 @@ from langchain.prompts import PromptTemplate
 
 import streamlit as st
 import os
+import re
+import requests
 
 # To run locally:
 # 1. Install the required packages:
@@ -40,6 +42,20 @@ llama_model = ChatOpenAI(model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
 mixtral_model = ChatOpenAI(model = "mistralai/Mixtral-8x22B-Instruct-v0.1",
                     openai_api_key = st.secrets["TOGETHER_API_KEY"],
                     openai_api_base = "https://api.together.xyz/v1")
+
+
+def get_youtube_thumbnail(youtube_url):
+    # Regular expression to extract video ID from the URL
+    video_id_pattern = r'(?:https?://)?(?:www\.)?(?:youtube\.com/(?:[^/]+/.*|(?:v|e(?:mbed)?)|.*[?&]v=)|youtu\.be/)([a-zA-Z0-9_-]{11})'
+    match = re.search(video_id_pattern, youtube_url)
+    
+    if match:
+        video_id = match.group(1)
+        # Construct the thumbnail URL
+        thumbnail_url = f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'
+        return thumbnail_url
+    else:
+        return None
 
 def load_video_transcript(video_url):
     loader = YoutubeLoader.from_youtube_url(
@@ -176,6 +192,9 @@ if st.session_state.YTUrlLoaded:
         type="default",
         disabled=False
     )
+
+    yt_thumbnail = get_youtube_thumbnail(st.session_state.video_url)
+    st.image(yt_thumbnail, use_container_width=True)
 
     if user_question:
         user_role = "User"
