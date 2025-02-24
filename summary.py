@@ -81,6 +81,7 @@ def load_video_transcript(video_url):
     st.error(f"loader = {loader}")
     # Loads youtube video transcript
     documents = loader.load()
+    st.error(documents)
     return documents
 
 
