@@ -31,12 +31,14 @@ if "video_qa_chain" not in st.session_state:
     st.session_state.video_qa_chain = None
 if "yt_thumb" not in st.session_state:
     st.session_state.yt_thumb = None
+if "transcript_documents" not in st.session_state:
+    st.session_state.transcript_documents = None
 
 
-all_languages = ['ab', 'aa', 'af', 'ak', 'sq', 'am', 'ar', 'hy', 'as', 'ay', 'az', 'bn', 'ba', 'eu', 'be', 'bho', 'bs', 'br', 'bg', 'my', 'ca', 'ceb', 'zh-Hans', 'zh-Hant', 'co', 'hr', 'cs', 'da', 'dv', 'nl', 'dz', 'en', 'eo', 'et', 'ee', 'fo', 'fj', 'fil', 'fi', 'fr', 'gaa', 'gl', 'lg', 'ka', 'de', 'el', 'gn', 'gu', 'ht', 'ha', 'haw', 'iw', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 'iu', 'ga', 'it', 'ja', 'jv', 'kl', 'kn', 'kk', 'kha', 'km', 'rw', 'ko', 'kri', 'ku', 'ky', 'lo', 'la', 'lv', 'ln', 'lt', 'lua', 'luo', 'lb', 'mk', 'mg', 'ms', 'ml', 'mt', 'gv', 'mi', 'mr', 'mn', 'mfe', 'ne', 'new', 'nso', 'no', 'ny', 'oc', 'or', 'om', 'os', 'pam', 'ps', 'fa', 'pl', 'pt', 'pt-PT', 'pa', 'qu', 'ro', 'rn', 'ru', 'sm', 'sg', 'sa', 'gd', 'sr', 'crs', 'sn', 'sd', 'si', 'sk', 'sl', 'so', 'st', 'es', 'su', 'sw', 'ss', 'sv', 'tg', 'ta', 'tt', 'te', 'th', 'bo', 'ti', 'to', 'ts', 'tn', 'tum', 'tr', 'tk', 'uk', 'ur', 'ug', 'uz', 've', 'vi', 'war', 'cy', 'fy', 'wo', 'xh', 'yi', 'yo', 'zu']
+all_languages = ['ta', 'ab', 'aa', 'af', 'ak', 'sq', 'am', 'ar', 'hy', 'as', 'ay', 'az', 'bn', 'ba', 'eu', 'be', 'bho', 'bs', 'br', 'bg', 'my', 'ca', 'ceb', 'zh-Hans', 'zh-Hant', 'co', 'hr', 'cs', 'da', 'dv', 'nl', 'dz', 'en', 'eo', 'et', 'ee', 'fo', 'fj', 'fil', 'fi', 'fr', 'gaa', 'gl', 'lg', 'ka', 'de', 'el', 'gn', 'gu', 'ht', 'ha', 'haw', 'iw', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 'iu', 'ga', 'it', 'ja', 'jv', 'kl', 'kn', 'kk', 'kha', 'km', 'rw', 'ko', 'kri', 'ku', 'ky', 'lo', 'la', 'lv', 'ln', 'lt', 'lua', 'luo', 'lb', 'mk', 'mg', 'ms', 'ml', 'mt', 'gv', 'mi', 'mr', 'mn', 'mfe', 'ne', 'new', 'nso', 'no', 'ny', 'oc', 'or', 'om', 'os', 'pam', 'ps', 'fa', 'pl', 'pt', 'pt-PT', 'pa', 'qu', 'ro', 'rn', 'ru', 'sm', 'sg', 'sa', 'gd', 'sr', 'crs', 'sn', 'sd', 'si', 'sk', 'sl', 'so', 'st', 'es', 'su', 'sw', 'ss', 'sv', 'tg', 'ta', 'tt', 'te', 'th', 'bo', 'ti', 'to', 'ts', 'tn', 'tum', 'tr', 'tk', 'uk', 'ur', 'ug', 'uz', 've', 'vi', 'war', 'cy', 'fy', 'wo', 'xh', 'yi', 'yo', 'zu']
 indian_languages = ['as', 'bn', 'bho', 'gu', 'hi', 'kn', 'ks', 'ml', 'mr', 'ne', 'or', 'pa', 'sa', 'sd', 'si', 'ta', 'te', 'ur']
 
-llm = ChatOpenAI(temperature=0.7, model_name='gpt-4o-mini')
+openai_model = ChatOpenAI(temperature=0.7, model_name='gpt-4o-mini')
 
 llama_model = ChatOpenAI(model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
                     openai_api_key = st.secrets["TOGETHER_API_KEY"],
@@ -52,13 +54,14 @@ def load_video_transcript(video_url):
         video_url,
         # language=['ta', 'en', 'te'],
         language = all_languages,
-        translation='en',  # Translate to English
+        # translation='en',  # Translate to English
         add_video_info=False
     )
 
     st.session_state.yt_thumb = f'https://img.youtube.com/vi/{loader.video_id}/hqdefault.jpg' # set thumbnail image
     # Loads youtube video transcript
     documents = loader.load()
+    st.session_state.transcript_documents = documents  # Store documents in session state
     return documents
 
 
@@ -112,6 +115,8 @@ def process_url(video_url, model):
         model = llama_model
     elif model == "Mistral":
         model = mixtral_model
+    elif model == "OpenAI":
+        model = openai_model
 
     # Create conversation chain
     st.session_state.video_qa_chain = create_qa_chain(vectorstore, model)
@@ -163,7 +168,7 @@ with st.sidebar:
 
     st.selectbox(
         "Select AI Model",
-        ("Mistral", "Llama"),
+        ("Mistral", "Llama", "OpenAI"),
         key="model",
         on_change=initiate_processing
     )
@@ -186,6 +191,14 @@ if st.session_state.YTUrlLoaded:
 
     yt_thumbnail = st.session_state.yt_thumb
     st.image(yt_thumbnail, use_container_width=True)
+    
+    # Add collapsible transcript display
+    if st.session_state.transcript_documents:
+        with st.expander("View Video Transcript", expanded=False):
+            for i, doc in enumerate(st.session_state.transcript_documents):
+                st.markdown(f"**Segment {i+1}:**")
+                st.text(doc.page_content)
+                st.divider()
 
     if user_question:
         user_role = "User"
